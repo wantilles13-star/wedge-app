@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wedge-app
+  namespace: wedge-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wedge-app
+  template:
+    metadata:
+      labels:
+        app: wedge-app
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.29
+          ports:
+            - containerPort: 80
