@@ -10,7 +10,7 @@ deny[msg] {
 deny[msg] {
   workload_kind
   spec := podspec
-  c := all_containers(spec)[_]
+  some c in all_containers(spec)
   c.securityContext.allowPrivilegeEscalation != false
   msg := sprintf("%s containers must set allowPrivilegeEscalation=false.", [input.kind])
 }
@@ -18,7 +18,7 @@ deny[msg] {
 deny[msg] {
   workload_kind
   spec := podspec
-  c := all_containers(spec)[_]
+  some c in all_containers(spec)
   not drops_all_capabilities(c)
   msg := sprintf("%s containers must drop ALL Linux capabilities.", [input.kind])
 }
@@ -33,7 +33,7 @@ deny[msg] {
 deny[msg] {
   workload_kind
   spec := podspec
-  c := all_containers(spec)[_]
+  some c in all_containers(spec)
   not has_resource_limits(c)
   msg := sprintf("%s containers must set cpu and memory limits.", [input.kind])
 }
@@ -129,16 +129,19 @@ podspec = input.spec.jobTemplate.spec.template.spec {
   input.kind == "CronJob"
 }
 
-all_containers(spec)[c] {
-  c := spec.containers[_]
+all_containers(spec) contains c if {
+  some i
+  c := spec.containers[i]
 }
 
-all_containers(spec)[c] {
-  c := spec.initContainers[_]
+all_containers(spec) contains c if {
+  some i
+  c := spec.initContainers[i]
 }
 
-all_containers(spec)[c] {
-  c := spec.ephemeralContainers[_]
+all_containers(spec) contains c if {
+  some i
+  c := spec.ephemeralContainers[i]
 }
 
 run_as_non_root(spec) {
@@ -150,7 +153,7 @@ run_as_non_root(spec) {
 }
 
 missing_container_run_as_non_root(spec) {
-  c := all_containers(spec)[_]
+  some c in all_containers(spec)
   c.securityContext.runAsNonRoot != true
 }
 

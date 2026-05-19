@@ -66,8 +66,8 @@ deny[msg] {
 
 deny[msg] {
   spec := podspec
-  some i
-  all_containers(spec)[i].securityContext.privileged == true
+  some c in all_containers(spec)
+  c.securityContext.privileged == true
   msg := "privileged=true is forbidden for tenant workloads."
 }
 
@@ -76,6 +76,34 @@ deny[msg] {
   bytes := configmap_data_bytes
   bytes > 200000
   msg := sprintf("ConfigMap data is too large for Argo annotations safety (%d bytes > 200000).", [bytes])
+}
+
+workload_kind {
+  input.kind == "Pod"
+}
+
+workload_kind {
+  input.kind == "Deployment"
+}
+
+workload_kind {
+  input.kind == "StatefulSet"
+}
+
+workload_kind {
+  input.kind == "DaemonSet"
+}
+
+workload_kind {
+  input.kind == "ReplicaSet"
+}
+
+workload_kind {
+  input.kind == "Job"
+}
+
+workload_kind {
+  input.kind == "CronJob"
 }
 
 podspec = input.spec {
@@ -106,16 +134,19 @@ podspec = input.spec.jobTemplate.spec.template.spec {
   input.kind == "CronJob"
 }
 
-all_containers(spec)[c] {
-  c := spec.containers[_]
+all_containers(spec) contains c if {
+  some i
+  c := spec.containers[i]
 }
 
-all_containers(spec)[c] {
-  c := spec.initContainers[_]
+all_containers(spec) contains c if {
+  some i
+  c := spec.initContainers[i]
 }
 
-all_containers(spec)[c] {
-  c := spec.ephemeralContainers[_]
+all_containers(spec) contains c if {
+  some i
+  c := spec.ephemeralContainers[i]
 }
 
 configmap_data_bytes = total {
