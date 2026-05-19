@@ -1,5 +1,0 @@
-tenantSlug: wedge-app
-renderPath: k8s/wedge-app
-ingressHost: wedge-app.reeves.racing
-targetArch: arm64
-ingressClass: nginx
