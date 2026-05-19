@@ -1,7 +1,5 @@
 package main
 
-import rego.v1
-
 deny[msg] {
   blocked_kinds := {
     "Namespace",
@@ -68,8 +66,22 @@ deny[msg] {
 
 deny[msg] {
   spec := podspec
-  some c in all_containers[spec]
-  c.securityContext.privileged == true
+  container := spec.containers[_]
+  container.securityContext.privileged == true
+  msg := "privileged=true is forbidden for tenant workloads."
+}
+
+deny[msg] {
+  spec := podspec
+  container := spec.initContainers[_]
+  container.securityContext.privileged == true
+  msg := "privileged=true is forbidden for tenant workloads."
+}
+
+deny[msg] {
+  spec := podspec
+  container := spec.ephemeralContainers[_]
+  container.securityContext.privileged == true
   msg := "privileged=true is forbidden for tenant workloads."
 }
 
@@ -136,23 +148,8 @@ podspec = input.spec.jobTemplate.spec.template.spec {
   input.kind == "CronJob"
 }
 
-all_containers[spec] contains c if {
-  some i
-  c := spec.containers[i]
-}
-
-all_containers[spec] contains c if {
-  some i
-  c := spec.initContainers[i]
-}
-
-all_containers[spec] contains c if {
-  some i
-  c := spec.ephemeralContainers[i]
-}
-
 configmap_data_bytes = total {
-  values := [v | some k; v := input.data[k]]
+  values := [v | v := input.data[_]]
   lengths := [count(sprintf("%v", [v])) | v := values[_]]
   total := sum(lengths)
 }

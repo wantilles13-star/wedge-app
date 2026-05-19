@@ -1,7 +1,5 @@
 package main
 
-import rego.v1
-
 deny[msg] {
   workload_kind
   spec := podspec
@@ -12,16 +10,48 @@ deny[msg] {
 deny[msg] {
   workload_kind
   spec := podspec
-  some c in all_containers[spec]
-  c.securityContext.allowPrivilegeEscalation != false
+  container := spec.containers[_]
+  container.securityContext.allowPrivilegeEscalation != false
   msg := sprintf("%s containers must set allowPrivilegeEscalation=false.", [input.kind])
 }
 
 deny[msg] {
   workload_kind
   spec := podspec
-  some c in all_containers[spec]
-  not drops_all_capabilities(c)
+  container := spec.initContainers[_]
+  container.securityContext.allowPrivilegeEscalation != false
+  msg := sprintf("%s containers must set allowPrivilegeEscalation=false.", [input.kind])
+}
+
+deny[msg] {
+  workload_kind
+  spec := podspec
+  container := spec.ephemeralContainers[_]
+  container.securityContext.allowPrivilegeEscalation != false
+  msg := sprintf("%s containers must set allowPrivilegeEscalation=false.", [input.kind])
+}
+
+deny[msg] {
+  workload_kind
+  spec := podspec
+  container := spec.containers[_]
+  not drops_all_capabilities(container)
+  msg := sprintf("%s containers must drop ALL Linux capabilities.", [input.kind])
+}
+
+deny[msg] {
+  workload_kind
+  spec := podspec
+  container := spec.initContainers[_]
+  not drops_all_capabilities(container)
+  msg := sprintf("%s containers must drop ALL Linux capabilities.", [input.kind])
+}
+
+deny[msg] {
+  workload_kind
+  spec := podspec
+  container := spec.ephemeralContainers[_]
+  not drops_all_capabilities(container)
   msg := sprintf("%s containers must drop ALL Linux capabilities.", [input.kind])
 }
 
@@ -35,8 +65,24 @@ deny[msg] {
 deny[msg] {
   workload_kind
   spec := podspec
-  some c in all_containers[spec]
-  not has_resource_limits(c)
+  container := spec.containers[_]
+  not has_resource_limits(container)
+  msg := sprintf("%s containers must set cpu and memory limits.", [input.kind])
+}
+
+deny[msg] {
+  workload_kind
+  spec := podspec
+  container := spec.initContainers[_]
+  not has_resource_limits(container)
+  msg := sprintf("%s containers must set cpu and memory limits.", [input.kind])
+}
+
+deny[msg] {
+  workload_kind
+  spec := podspec
+  container := spec.ephemeralContainers[_]
+  not has_resource_limits(container)
   msg := sprintf("%s containers must set cpu and memory limits.", [input.kind])
 }
 
@@ -131,21 +177,6 @@ podspec = input.spec.jobTemplate.spec.template.spec {
   input.kind == "CronJob"
 }
 
-all_containers[spec] contains c if {
-  some i
-  c := spec.containers[i]
-}
-
-all_containers[spec] contains c if {
-  some i
-  c := spec.initContainers[i]
-}
-
-all_containers[spec] contains c if {
-  some i
-  c := spec.ephemeralContainers[i]
-}
-
 run_as_non_root(spec) {
   spec.securityContext.runAsNonRoot == true
 }
@@ -155,8 +186,18 @@ run_as_non_root(spec) {
 }
 
 missing_container_run_as_non_root(spec) {
-  some c in all_containers[spec]
-  c.securityContext.runAsNonRoot != true
+  container := spec.containers[_]
+  container.securityContext.runAsNonRoot != true
+}
+
+missing_container_run_as_non_root(spec) {
+  container := spec.initContainers[_]
+  container.securityContext.runAsNonRoot != true
+}
+
+missing_container_run_as_non_root(spec) {
+  container := spec.ephemeralContainers[_]
+  container.securityContext.runAsNonRoot != true
 }
 
 drops_all_capabilities(container) {
