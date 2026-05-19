@@ -64,10 +64,6 @@ jobs:
           sudo mv /tmp/conftest /usr/local/bin/conftest
 
       - name: Render manifests
-        shell: bash
-        env:
-          RENDER_PATH: ${{ env.RENDER_PATH }}
-          MANIFEST_OUTPUT: ${{ env.MANIFEST_OUTPUT }}
         run: bash scripts/render-manifests.sh
 
       - name: Schema validate

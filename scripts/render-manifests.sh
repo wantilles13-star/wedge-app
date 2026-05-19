@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Shared render logic for tenant-guardrails CI and validate-locally.sh.
 set -euo pipefail
 
 RENDER_PATH="${RENDER_PATH:-}"
@@ -34,24 +33,20 @@ has_flat_yaml_manifests() {
 render_flat_yaml_dir() {
   local dir="$1"
   local output="$2"
+  local first=1
   : > "${output}"
-  local files=()
   while IFS= read -r file; do
-    files+=("${file}")
+    if [ "${first}" -eq 1 ]; then
+      first=0
+    else
+      printf '\n---\n' >> "${output}"
+    fi
+    cat "${file}" >> "${output}"
   done < <(find "${dir}" -maxdepth 1 -type f -name '*.yaml' ! -name 'kustomization.yaml' | sort)
-  local count="${#files[@]}"
-  if [ "${count}" -eq 0 ]; then
+  if [ "${first}" -eq 1 ]; then
     echo "No YAML manifests found in ${dir}."
     return 1
   fi
-  local index=0
-  for file in "${files[@]}"; do
-    cat "${file}" >> "${output}"
-    index=$((index + 1))
-    if [ "${index}" -lt "${count}" ]; then
-      printf '\n---\n' >> "${output}"
-    fi
-  done
 }
 
 if [ -z "${RENDER_PATH}" ]; then
