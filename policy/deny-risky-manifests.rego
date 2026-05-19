@@ -68,7 +68,7 @@ deny[msg] {
 
 deny[msg] {
   spec := podspec
-  some c in all_containers(spec)
+  some c in all_containers[spec]
   c.securityContext.privileged == true
   msg := "privileged=true is forbidden for tenant workloads."
 }
@@ -136,17 +136,17 @@ podspec = input.spec.jobTemplate.spec.template.spec {
   input.kind == "CronJob"
 }
 
-all_containers(spec) contains c if {
+all_containers[spec] contains c if {
   some i
   c := spec.containers[i]
 }
 
-all_containers(spec) contains c if {
+all_containers[spec] contains c if {
   some i
   c := spec.initContainers[i]
 }
 
-all_containers(spec) contains c if {
+all_containers[spec] contains c if {
   some i
   c := spec.ephemeralContainers[i]
 }
