@@ -1,7 +1,3 @@
-Wedge app tenant repository.
+# wedge-app
 
-Tenant guardrails are enforced by:
-
-- `.github/workflows/tenant-guardrails.yaml`
-- `.github/workflows/repo-hygiene.yaml`
-- `policy/`
+Greenfield tenant repo for k3s-homelab onboarding E2E. Platform onboarding will seed CI and manifests on first grant.
