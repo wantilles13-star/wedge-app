@@ -27,7 +27,7 @@ jobs:
           if [ -f Dockerfile ]; then
             echo "present=true" >> "$GITHUB_OUTPUT"
           fi
-      - uses: hadolint/hadolint-action@v3.1.0
+      - uses: hadolint/hadolint-action@v3.3.0
         if: steps.dockerfile.outputs.present == 'true'
         with:
           dockerfile: Dockerfile
