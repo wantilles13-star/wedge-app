@@ -1,5 +1,7 @@
 package main
 
+import rego.v1
+
 deny[msg] {
   workload_kind
   spec := podspec

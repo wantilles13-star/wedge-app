@@ -1,5 +1,7 @@
 package main
 
+import rego.v1
+
 deny[msg] {
   blocked_kinds := {
     "Namespace",
